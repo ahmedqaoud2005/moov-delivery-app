@@ -35,12 +35,17 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build APK (Force Strategy)
+      - name: Force Fix Android Configurations
+        run: |
+          # هذا الأمر يدخل لملف الإعدادات ويضيف حل التعارض برمجياً
+          FILE="android/app/build.gradle"
+          sed -i '/android {/a \    packagingOptions {\n        resources {\n            pickFirst "META-INF/*.kotlin_module"\n            pickFirst "**/kotlin-stdlib-jdk8.kotlin_module"\n            pickFirst "**/kotlin-stdlib-jdk7.kotlin_module"\n            pickFirst "**/kotlin-stdlib.kotlin_module"\n            excludes += "/META-INF/{AL2.0,LGPL2.1}"\n        }\n    }' $FILE
+
+      - name: Build APK
         run: |
           cd android
           chmod +x gradlew
-          # استراتيجية إجبارية لحل تعارض المكتبات
-          ./gradlew clean assembleDebug -Pandroid.packageOptions.pickFirsts="**/*.kotlin_module,**/*.jar,**/META-INF/*" -Pandroid.packageOptions.merges="**/*.kotlin_module"
+          ./gradlew clean assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
