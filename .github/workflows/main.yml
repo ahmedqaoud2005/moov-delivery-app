@@ -9,11 +9,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract and Move Files
+      - name: Extract Project Files
         run: |
-          unzip -o *.zip -d temp_folder
-          find temp_folder -maxdepth 2 -name "package.json" -exec dirname {} \; | xargs -I {} mv {}/* . || true
-          rm -rf temp_folder
+          unzip -o *.zip -d project_data
+          # البحث عن مكان وجود package.json والدخول للمجلد الخاص به
+          TARGET_DIR=$(find project_data -name "package.json" -printf '%h' -quit)
+          echo "PROJECT_ROOT=$TARGET_DIR" >> $GITHUB_ENV
+          echo "Target directory is $TARGET_DIR"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -22,25 +24,29 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          cd ${{ env.PROJECT_ROOT }}
           npm install --legacy-peer-deps || npm install --force
 
       - name: Build Web Project
-        run: npm run build --if-present
+        run: |
+          cd ${{ env.PROJECT_ROOT }}
+          npm run build --if-present
 
       - name: Build Android
         run: |
+          cd ${{ env.PROJECT_ROOT }}
           npx cap add android || true
           npx cap copy
           if [ -d "android" ]; then
             cd android && ./gradlew assembleDebug
           else
-            echo "Android folder not found, skipping Gradle build."
+            echo "Android folder not found!"
             exit 1
           fi
 
-      - name: Upload Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Moov-Delivery-Final
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: "**/android/app/build/outputs/apk/debug/app-debug.apk"
           
