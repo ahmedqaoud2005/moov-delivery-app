@@ -39,7 +39,7 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew clean assembleDebug -Pandroid.packageOptions.pickFirsts="**/kotlin-stdlib-jdk8.kotlin_module,**/kotlin-stdlib-jdk7.kotlin_module,**/kotlin-stdlib.kotlin_module"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
