@@ -1,4 +1,4 @@
-name: Moov Final Force Build
+name: Moov Clean Victory
 
 on:
   push:
@@ -13,31 +13,31 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Capacitor Setup
+      - name: Capacitor Clean Setup
         run: |
+          # تنظيف أي بقايا سابقة نهائياً
+          rm -rf android node_modules package-lock.json
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          rm -rf android
+          # بناء المشروع من ملفاتك في مجلد pubilc
           npx cap init "Moov" "com.moov.delivery" --web-dir pubilc
           npx cap add android
           npx cap sync android
 
       - uses: actions/setup-java@v4
         with:
-          java-version: '17' # غيرناها لنسخة أكثر استقراراً مع Capacitor
+          java-version: '17'
           distribution: 'temurin'
 
-      - name: Force Build Without Conflicts
+      - name: Final Build Force
         run: |
           cd android
-          # إجبار المشروع على استخدام AndroidX وحل تعارض Kotlin
+          # إجبار النظام على تجاهل تعارض المكتبات
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
-          echo "kotlin.code.style=official" >> gradle.properties
           chmod +x gradlew
-          # أمر بناء ينظف ويجبر النسخ على التوافق
-          ./gradlew clean assembleDebug --no-daemon -Dorg.gradle.jvmargs="-Xmx2048m"
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Moov-Final-App
+          name: Moov-Victory-App
           path: android/app/build/outputs/apk/debug/app-debug.apk
