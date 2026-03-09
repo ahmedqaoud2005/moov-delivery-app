@@ -35,17 +35,18 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Force Fix Android Configurations
+      - name: Delete Duplicate Kotlin Files
         run: |
-          # هذا الأمر يدخل لملف الإعدادات ويضيف حل التعارض برمجياً
-          FILE="android/app/build.gradle"
-          sed -i '/android {/a \    packagingOptions {\n        resources {\n            pickFirst "META-INF/*.kotlin_module"\n            pickFirst "**/kotlin-stdlib-jdk8.kotlin_module"\n            pickFirst "**/kotlin-stdlib-jdk7.kotlin_module"\n            pickFirst "**/kotlin-stdlib.kotlin_module"\n            excludes += "/META-INF/{AL2.0,LGPL2.1}"\n        }\n    }' $FILE
+          # حذف الملفات المسببة للتعارض يدوياً من مجلدات النظام
+          find /home/runner/.m2/repository -name "kotlin-stdlib-jdk*.jar" -delete || true
+          find /home/runner/.gradle/caches -name "kotlin-stdlib-jdk*.jar" -delete || true
 
-      - name: Build APK
+      - name: Build APK (The Ultimate Force)
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew clean assembleDebug
+          # إجبار Gradle على تجاهل التكرار في ملف الإعدادات ودمج الملفات
+          ./gradlew assembleDebug -Pandroid.packageOptions.pickFirsts="**/*.kotlin_module" -Pandroid.packageOptions.excludes="META-INF/*.kotlin_module"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
