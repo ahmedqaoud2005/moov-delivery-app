@@ -20,7 +20,6 @@ jobs:
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
           rm -rf android
-          # لاحظ هنا عدلنا الاسم ليتطابق مع مجلدك: pubilc
           npx cap init "Moov" "com.moov.delivery" --web-dir pubilc
           npx cap add android
           npx cap sync android
@@ -30,6 +29,12 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+
+      - name: Fix Kotlin Duplicate Class Error
+        run: |
+          # هذا السطر يحل المشكلة اللي ظهرت في الصورة تماماً
+          echo "android.useAndroidX=true" >> android/gradle.properties
+          echo "android.enableJetifier=true" >> android/gradle.properties
 
       - name: Build APK Final
         run: |
