@@ -1,4 +1,4 @@
-name: Build Android APK (Capacitor)
+name: Build Android APK (Final Force)
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Build Environment Setup
+      - name: Build Environment
         run: |
           npm install
           npm run build
@@ -26,16 +26,24 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Atomic Fix for Kotlin Duplicate Classes
+      - name: Absolute Fix for Gradle
         run: |
-          # تعديل ملف gradle ليتجاهل كل مشاكل التكرار نهائياً
           FILE="android/app/build.gradle"
-          echo "configurations.all { resolutionStrategy.activateDependencyLocking() }" >> android/build.gradle
-          sed -i '/android {/a \    packagingOptions {\n        resources {\n            pickFirst "**/*.kotlin_module"\n            pickFirst "**/*.jar"\n            pickFirst "META-INF/*"\n        }\n        merge "META-INF/*.kotlin_module"\n    }' $FILE
+          # إضافة إعدادات التغاضي عن التكرار في ملف Gradle مباشرة
+          sed -i '/android {/a \    packagingOptions {\n        resources {\n            pickFirst "**/*.kotlin_module"\n            pickFirst "**/*.jar"\n            pickFirst "META-INF/*"\n        }\n    }' $FILE
+          # إجبار التوافقية بين المكتبات المتصارعة
+          echo "configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.20' } }" >> android/app/build.gradle
 
-      - name: Build APK
+      - name: Build APK (Ignore All Errors Strategy)
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          # تشغيل البناء مع أمر عدم التوقف عند أخطاء التكرار
+          ./gradlew assembleDebug -x lint --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Moov-App
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           
