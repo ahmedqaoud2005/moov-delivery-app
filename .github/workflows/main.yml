@@ -1,4 +1,4 @@
-name: Build Android APK (Final Force)
+name: Build Android APK (Final Project Files)
 
 on:
   push:
@@ -11,12 +11,22 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Build Environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web Project
+        run: npm run build # تأكد أن هذا الأمر ينتج مجلد dist أو www
+
+      - name: Capacitor Android Sync
         run: |
-          npm install
-          npm run build
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "Moov" "com.moov.delivery" --web-dir dist
+          # إذا كانت ملفاتك في مجلد غير dist، غير الاسم هنا
+          npx cap init "Moov" "com.moov.delivery" --web-dir dist 
           npx cap add android
           npx cap copy android
 
@@ -29,21 +39,17 @@ jobs:
       - name: Absolute Fix for Gradle
         run: |
           FILE="android/app/build.gradle"
-          # إضافة إعدادات التغاضي عن التكرار في ملف Gradle مباشرة
           sed -i '/android {/a \    packagingOptions {\n        resources {\n            pickFirst "**/*.kotlin_module"\n            pickFirst "**/*.jar"\n            pickFirst "META-INF/*"\n        }\n    }' $FILE
-          # إجبار التوافقية بين المكتبات المتصارعة
           echo "configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.20' } }" >> android/app/build.gradle
 
-      - name: Build APK (Ignore All Errors Strategy)
+      - name: Build APK
         run: |
           cd android
           chmod +x gradlew
-          # تشغيل البناء مع أمر عدم التوقف عند أخطاء التكرار
           ./gradlew assembleDebug -x lint --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Moov-App
+          name: Moov-App-Real
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          
