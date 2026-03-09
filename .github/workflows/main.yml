@@ -7,19 +7,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # تم التحديث لـ v4
+      - uses: actions/checkout@v4
 
-      - name: Extract Files
-        run: unzip -o *.zip -d .
+      - name: Extract and Move Files
+        run: |
+          unzip -o *.zip -d temp_folder
+          # هذا السطر ينقل الملفات من المجلد الفرعي للمسار الرئيسي لضمان نجاح البناء
+          find temp_folder -maxdepth 2 -name "package.json" -exec dirname {} \; | xargs -I {} mv {}/* . || true
+          rm -rf temp_folder
 
       - name: Setup Node
-        uses: actions/setup-node@v4 # تم التحديث لـ v4
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Install and Build
         run: |
-          npm install
+          npm install --force
           npm run build
 
       - name: Build Android
@@ -29,8 +33,8 @@ jobs:
           cd android && ./gradlew assembleDebug
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4 # هذا هو الإصدار المطلوب لحل المشكلة
+        uses: actions/upload-artifact@v4
         with:
-          name: Moov-App-Package
+          name: Moov-App-Final
           path: android/app/build/outputs/apk/debug/app-debug.apk
           
