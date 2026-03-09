@@ -1,38 +1,49 @@
-name: Build Android APK
+name: Build Android APK (Capacitor)
 
 on:
   push:
-    branches: [ "main" ] # تأكد أن هذا هو اسم الفرع الرئيسي عندك (Main أو Master)
-  pull_request:
     branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21 # التعديل الجوهري هنا لحل خطأ Version 65
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web Project
+        run: npm run build
+
+      - name: Add Android Platform
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "Moov" "com.moov.delivery" --web-dir dist
+          npx cap add android
+          npx cap copy android
+
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
-          cache: 'gradle'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Change wrapper permissions # لضمان صلاحيات التنفيذ
-        run: chmod +x gradlew
-
-      - name: Build with Gradle
-        run: ./gradlew assembleDebug # بناء نسخة الـ Debug
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: Moov-App
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           
