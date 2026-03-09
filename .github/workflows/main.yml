@@ -1,4 +1,4 @@
-name: Build Moov Final Fix
+name: Moov Final Success
 
 on:
   push:
@@ -8,39 +8,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install & Sync Capacitor
+      - name: Build App
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          # حذف أي مجلد أندرويد قديم لضمان بناء نظيف
-          rm -rf android
-          # إنشاء الإعدادات وربط الملفات (استخدمنا النقطة لأن index.html بره)
-          npx cap init "Moov" "com.moov.delivery" --web-dir .
-          npx cap add android
-          # هذا السطر هو اللي بيحل مشكلة الملف المفقود في صورتك
+          npx cap init "Moov" "com.moov.delivery" --web-dir . --confirm
+          npx cap add android || true
           npx cap sync android
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build APK
+      - name: Create APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug -x lint --no-daemon
 
-      - name: Upload Moov APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: Moov-Fixed-Version
+          name: Moov-Winner-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
