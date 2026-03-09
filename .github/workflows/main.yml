@@ -1,4 +1,4 @@
-name: Moov Victory Final
+name: Moov Victory Final Fix
 
 on:
   push:
@@ -16,13 +16,12 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install & Sync Capacitor
+      - name: Install Capacitor
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
           rm -rf android
           npx cap init "Moov" "com.moov.delivery" --web-dir pubilc
           npx cap add android
-          npx cap sync android
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -30,20 +29,22 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Fix Kotlin Duplicate Class Error
+      - name: Force Fix Dependencies
         run: |
-          # هذا السطر يحل المشكلة اللي ظهرت في الصورة تماماً
-          echo "android.useAndroidX=true" >> android/gradle.properties
-          echo "android.enableJetifier=true" >> android/gradle.properties
+          # حل مشكلة التعارض اللي ظهرت في السطر 144
+          cd android
+          echo "android.useAndroidX=true" >> gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+          ./gradlew clean
 
-      - name: Build APK Final
+      - name: Build APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon -Pandroid.useAndroidX=true -Pandroid.enableJetifier=true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Moov-Final-Winner
+          name: Moov-App-Original
           path: android/app/build/outputs/apk/debug/app-debug.apk
