@@ -19,10 +19,9 @@ jobs:
       - name: Install & Sync Capacitor
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          # مسح أي بناء قديم لضمان النظافة
           rm -rf android
-          # التعديل المهم جداً: القراءة من مجلد public
-          npx cap init "Moov" "com.moov.delivery" --web-dir public
+          # لاحظ هنا عدلنا الاسم ليتطابق مع مجلدك: pubilc
+          npx cap init "Moov" "com.moov.delivery" --web-dir pubilc
           npx cap add android
           npx cap sync android
 
