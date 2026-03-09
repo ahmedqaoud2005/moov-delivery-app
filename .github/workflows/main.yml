@@ -1,48 +1,38 @@
-name: Build APK
+name: Build Android APK
+
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ] # تأكد أن هذا هو اسم الفرع الرئيسي عندك (Main أو Master)
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Extract Project Files
-        run: |
-          unzip -o *.zip -d project_data
-          TARGET_DIR=$(find project_data -name "package.json" -printf '%h' -quit)
-          echo "PROJECT_ROOT=$TARGET_DIR" >> $GITHUB_ENV
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Set up JDK 21 # التعديل الجوهري هنا لحل خطأ Version 65
+        uses: actions/setup-java@v4
         with:
-          node-version: 18
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
 
-      - name: Install and Build Web
-        run: |
-          cd ${{ env.PROJECT_ROOT }}
-          npm install --legacy-peer-deps
-          npm install -D @tailwindcss/oxide-linux-x64-gnu
-          npm run build
-          mkdir -p www && cp -r dist/* www/ 2>/dev/null || cp -r build/* www/ 2>/dev/null || true
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Build Android APK
-        run: |
-          cd ${{ env.PROJECT_ROOT }}
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "MoovDelivery" "com.moov.delivery" --web-dir www || true
-          npx cap add android || true
-          npx cap sync
-          cd android
-          chmod +x gradlew
-          # هذا السطر هو الحل النهائي لمشكلة الـ Jar file في صورك
-          ./gradlew assembleDebug --no-build-cache --stacktrace
+      - name: Change wrapper permissions # لضمان صلاحيات التنفيذ
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew assembleDebug # بناء نسخة الـ Debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Moov-Delivery-APK
-          path: "**/android/app/build/outputs/apk/debug/app-debug.apk"
+          name: app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
           
