@@ -23,15 +23,10 @@ jobs:
       - name: Clean and Install Dependencies
         run: |
           cd ${{ env.PROJECT_ROOT }}
-          # تنظيف الملفات المسببة للتعارض قبل التثبيت
           rm -rf node_modules package-lock.json
           npm install --legacy-peer-deps
-
-      - name: Fix Tailwind Native Binding
-        run: |
-          cd ${{ env.PROJECT_ROOT }}
-          # إعادة بناء المكتبات لتتوافق مع نظام التشغيل في السيرفر
-          npm rebuild @tailwindcss/oxide
+          # هذه الخطوة هي المفتاح لحل خطأ Native Binding نهائياً
+          npm install -D @tailwindcss/oxide-linux-x64-gnu 
 
       - name: Build Web Project
         run: |
