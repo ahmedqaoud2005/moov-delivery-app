@@ -20,30 +20,22 @@ jobs:
         with:
           node-version: 18
 
-      - name: Clean and Install Dependencies
+      - name: Install and Build Web
         run: |
           cd ${{ env.PROJECT_ROOT }}
-          rm -rf node_modules package-lock.json
           npm install --legacy-peer-deps
-          # هذه الخطوة هي المفتاح لحل خطأ Native Binding نهائياً
-          npm install -D @tailwindcss/oxide-linux-x64-gnu 
-
-      - name: Build Web Project
-        run: |
-          cd ${{ env.PROJECT_ROOT }}
+          npm install -D @tailwindcss/oxide-linux-x64-gnu
           npm run build
 
-      - name: Build Android
+      - name: Build Android APK
         run: |
           cd ${{ env.PROJECT_ROOT }}
+          # تثبيت أدوات الأندرويد اللازمة
+          npm install @capacitor/core @capacitor/cli @capacitor/android
           npx cap add android || true
           npx cap copy
-          if [ -d "android" ]; then
-            cd android && ./gradlew assembleDebug
-          else
-            echo "Android folder not found!"
-            exit 1
-          fi
+          npx cap sync
+          cd android && ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
