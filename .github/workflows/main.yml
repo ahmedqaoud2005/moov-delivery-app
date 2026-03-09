@@ -16,7 +16,7 @@ jobs:
       - name: Build App
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "Moov" "com.moov.delivery" --web-dir . --confirm
+          npx cap init "Moov" "com.moov.delivery" --web-dir .
           npx cap add android || true
           npx cap sync android
 
