@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android APK from ZIP
 on: [push]
 
 jobs:
@@ -7,6 +7,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
+      - name: Unzip Project Files
+        run: unzip *.zip -d . # هذا السطر سيفك ضغط ملفك تلقائياً
+        
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
