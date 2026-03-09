@@ -26,14 +26,17 @@ jobs:
           npm install --legacy-peer-deps
           npm install -D @tailwindcss/oxide-linux-x64-gnu
           npm run build
+          # حل مشكلة المجلد المفقود (www)
+          mkdir -p www
+          cp -r dist/* www/ 2>/dev/null || cp -r build/* www/ 2>/dev/null || true
 
       - name: Build Android APK
         run: |
           cd ${{ env.PROJECT_ROOT }}
-          # تثبيت أدوات الأندرويد اللازمة
           npm install @capacitor/core @capacitor/cli @capacitor/android
+          # إضافة المعرفات الناقصة آلياً
+          npx cap init "MoovDelivery" "com.moov.delivery" --web-dir www || true
           npx cap add android || true
-          npx cap copy
           npx cap sync
           cd android && ./gradlew assembleDebug
 
