@@ -1,4 +1,4 @@
-name: Build Android APK (Final Project Files)
+name: Build Moov Public Files
 
 on:
   push:
@@ -11,22 +11,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Web Project
-        run: npm run build # تأكد أن هذا الأمر ينتج مجلد dist أو www
-
-      - name: Capacitor Android Sync
+      - name: Install Capacitor
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          # إذا كانت ملفاتك في مجلد غير dist، غير الاسم هنا
-          npx cap init "Moov" "com.moov.delivery" --web-dir dist 
+          rm -rf android 
+          # هنا التعديل السحري: اخترنا مجلد public
+          npx cap init "Moov" "com.moov.delivery" --web-dir public
           npx cap add android
           npx cap copy android
 
@@ -36,20 +26,14 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Absolute Fix for Gradle
-        run: |
-          FILE="android/app/build.gradle"
-          sed -i '/android {/a \    packagingOptions {\n        resources {\n            pickFirst "**/*.kotlin_module"\n            pickFirst "**/*.jar"\n            pickFirst "META-INF/*"\n        }\n    }' $FILE
-          echo "configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.20' } }" >> android/app/build.gradle
-
       - name: Build APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug -x lint --no-daemon
+          ./gradlew assembleDebug --no-daemon
 
-      - name: Upload APK
+      - name: Upload Moov Final
         uses: actions/upload-artifact@v4
         with:
-          name: Moov-App-Real
+          name: Moov-Final-Public
           path: android/app/build/outputs/apk/debug/app-debug.apk
