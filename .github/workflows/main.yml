@@ -35,12 +35,12 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build APK (The Final Fix)
+      - name: Build APK (Force Strategy)
         run: |
           cd android
           chmod +x gradlew
-          # إجبار النظام على تجاهل أي تكرار وحذف الملفات المسببة للأزمة
-          ./gradlew clean assembleDebug -Pandroid.packageOptions.pickFirsts="**/kotlin-stdlib-jdk8.kotlin_module,**/kotlin-stdlib-jdk7.kotlin_module,**/kotlin-stdlib.kotlin_module,**/kotlin-stdlib.jar"
+          # استراتيجية إجبارية لحل تعارض المكتبات
+          ./gradlew clean assembleDebug -Pandroid.packageOptions.pickFirsts="**/*.kotlin_module,**/*.jar,**/META-INF/*" -Pandroid.packageOptions.merges="**/*.kotlin_module"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
