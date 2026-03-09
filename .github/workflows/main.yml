@@ -1,4 +1,4 @@
-name: Moov Final Success
+name: Moov Final Clean Build
 
 on:
   push:
@@ -13,11 +13,14 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Build App
+      - name: Build
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
+          # حذف أي أثر قديم
+          rm -rf android
+          # بناء نظيف
           npx cap init "Moov" "com.moov.delivery" --web-dir .
-          npx cap add android || true
+          npx cap add android
           npx cap sync android
 
       - uses: actions/setup-java@v4
@@ -25,13 +28,13 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Create APK
+      - name: Generate APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug -x lint --no-daemon
+          ./gradlew assembleDebug --no-daemon
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Moov-Final-APK
+          name: Moov-Victory-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
