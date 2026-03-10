@@ -1,4 +1,4 @@
-name: Moov Clean Victory
+name: Moov Mobile Final Build
 
 on:
   push:
@@ -8,36 +8,39 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Capacitor Clean Setup
+      - name: Install & Capacitor Init
         run: |
-          # تنظيف أي بقايا سابقة نهائياً
-          rm -rf android node_modules package-lock.json
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          # بناء المشروع من ملفاتك في مجلد pubilc
+          # هنا بنستخدم اسم مجلدك الحالي بالضبط كما يظهر في الصورة: pubilc
           npx cap init "Moov" "com.moov.delivery" --web-dir pubilc
           npx cap add android
           npx cap sync android
 
-      - uses: actions/setup-java@v4
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Final Build Force
+      - name: Build APK Final
         run: |
           cd android
-          # إجبار النظام على تجاهل تعارض المكتبات
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          name: Moov-Victory-App
+          name: Moov-Original-App
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          
