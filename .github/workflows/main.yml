@@ -1,4 +1,4 @@
-name: Moov Mobile Final Fix
+name: Moov Final Success
 
 on:
   push:
@@ -27,11 +27,13 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Final Build
+      - name: Force Fix Duplicate Classes
         run: |
           cd android
+          # السطرين هدول هما الحل النهائي لمشكلة الصورة
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
+          echo "constraints { implementation(\"org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22\") { because(\"kotlin-stdlib-jdk8 is now part of kotlin-stdlib\") } }" >> app/build.gradle
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
