@@ -1,4 +1,4 @@
-name: Moov Mobile Final Build
+name: Moov Final Success
 
 on:
   push:
@@ -8,18 +8,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install & Capacitor Init
+      - name: Capacitor Setup
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          # هنا بنستخدم اسم مجلدك الحالي بالضبط كما يظهر في الصورة: pubilc
+          rm -rf android
           npx cap init "Moov" "com.moov.delivery" --web-dir pubilc
           npx cap add android
           npx cap sync android
@@ -29,17 +26,21 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
 
-      - name: Build APK Final
+      - name: Build APK
         run: |
           cd android
+          # إجبار الجافا على استخدام التوافق الصحيح
+          echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" >> gradle.properties
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
-
+          
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Moov-Original-App
+          name: Moov-App-Final
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          
