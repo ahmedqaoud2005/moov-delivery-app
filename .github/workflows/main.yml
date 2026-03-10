@@ -1,4 +1,4 @@
-name: Moov Final Success Artan
+name: Moov Victory Final Fix
 
 on:
   push:
@@ -27,19 +27,19 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build APK Without Conflicts
+      - name: Nuclear Fix for Duplicate Classes
         run: |
           cd android
+          # إجبار النظام على استخدام نسخة واحدة فقط من مكتبات Kotlin
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
-          # حل مشكلة التكرار (Duplicate Class) بطريقة مباشرة للسيرفر
-          echo "android.nonTransitiveRClass=true" >> gradle.properties
+          echo "configurations.all { resolutionStrategy { exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8' } }" >> app/build.gradle
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Moov-App-Final
+          name: Moov-Victory-App
           path: android/app/build/outputs/apk/debug/app-debug.apk
           
